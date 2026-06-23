@@ -20,16 +20,26 @@ class AgenteBaseadoConhecimento:
         
         # Conhecimento inicial da celula de partida
         self.kb.tell_visitado(self.pos_atual[0], self.pos_atual[1])
-        self.kb.tell(f"Visitada({self.pos_atual[0]},{self.pos_atual[1]})")
+        self.kb.inferir_conhecimento()
 
     def perceber_e_inferir(self):
         r, c = self.pos_atual
         percepcoes = self.env.obter_percepcoes(r, c)
         self.registro_acoes.append(f"Percebeu {list(percepcoes)} em ({r},{c})")
         
-        if "Brisa" in percepcoes: self.kb.tell(f"Brisa({r},{c})")
-        if "Fedor" in percepcoes: self.kb.tell(f"Fedor({r},{c})")
-        if "Brilho" in percepcoes: self.kb.tell(f"Brilho({r},{c})")
+        # Insere a percepcao positiva ou negativa na KB
+        if "Brisa" in percepcoes:
+            self.kb.tell(f"Brisa({r},{c})")
+        else:
+            self.kb.tell(f"~Brisa({r},{c})")
+            
+        if "Fedor" in percepcoes:
+            self.kb.tell(f"Fedor({r},{c})")
+        else:
+            self.kb.tell(f"~Fedor({r},{c})")
+            
+        if "Brilho" in percepcoes:
+            self.kb.tell(f"Brilho({r},{c})")
             
         self.kb.inferir_conhecimento()
 
@@ -76,7 +86,7 @@ class AgenteBaseadoConhecimento:
 
     def executar_simulacao(self):
         print("\n==================================================")
-        print("INICIO DA SIMULACAO: MUNDO DE WUMPUS")
+        print("INICIO DA SIMULACAO: MUNDO DE WUMPUS (HORN-SAT)")
         print("==================================================")
         passo = 0
         
@@ -113,13 +123,11 @@ class AgenteBaseadoConhecimento:
                     self.pos_atual = movimento
                     self.historico_trajetoria.append(movimento)
                     self.kb.tell_visitado(movimento[0], movimento[1])
-                    self.kb.tell(f"Visitada({movimento[0]},{movimento[1]})")
                     self.registro_acoes.append(f"Moveu-se para ({movimento[0]},{movimento[1]})")
             else:
                 self.pos_atual = proximo_alvo
                 self.historico_trajetoria.append(proximo_alvo)
                 self.kb.tell_visitado(proximo_alvo[0], proximo_alvo[1])
-                self.kb.tell(f"Visitada({proximo_alvo[0]},{proximo_alvo[1]})")
                 self.registro_acoes.append(f"Moveu-se para ({proximo_alvo[0]},{proximo_alvo[1]})")
 
         if self.tem_ouro and self.esta_vivo:
@@ -144,5 +152,5 @@ class AgenteBaseadoConhecimento:
         print("\nHistorico de Acoes Executadas:")
         for log in self.registro_acoes:
             print(f" - {log}")
-        print("\nSentencas Atomicas Armazenadas na Base de Conhecimento (KB):")
+        print("\nSentencas Atomicas Provadas na KB:")
         print(sorted(list(self.kb.fatos)))
