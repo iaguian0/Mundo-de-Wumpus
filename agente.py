@@ -24,6 +24,7 @@ class AgenteBaseadoConhecimento:
         self.passo = 0
 
         self.caminho_retorno = []
+        self.notificacoes = []
 
     def perceber_e_inferir(self):
         r, c = self.pos_atual
@@ -100,6 +101,8 @@ class AgenteBaseadoConhecimento:
             
             if "Ouro" in self.env.grade[r][c]:
                 print("[EVENTO] Ouro encontrado. Coletando e planejando retorno.")
+                self.notificacoes.append('[EVENTO] Ouro encontrado')
+
                 self.registro_acoes.append(f"Pegou o ouro em ({r},{c})")
                 self.tem_ouro = True
                 self.caminho_retorno = encontrar_caminho(self.tamanho, self.pos_atual, self.env.inicio_agente, self.kb)
@@ -107,18 +110,23 @@ class AgenteBaseadoConhecimento:
 
             if "Wumpus" in self.env.grade[r][c]:
                 print("[FAIL] Agente eliminado pelo Wumpus.")
+                self.notificacoes.append('[FAIL] Agente eliminado pelo Wumpus.')
+
                 self.esta_vivo = False
                 return False
 
             if "Poco" in self.env.grade[r][c]:
                 print("[FAIL] Agente caiu em um poco.")
+                self.notificacoes.append('[FAIL] Agente caiu em um poco.')
+
                 self.esta_vivo = False
                 return False
 
             proximo_alvo = self.escolher_proximo_movimento()
             if proximo_alvo is None:
                 print("[AVISO] Agente encurralado. Sem rotas validas disponiveis.")
-                return True
+                self.notificacoes.append('[AVISO] Agente encurralado')
+                return False
                 
             caminho = encontrar_caminho(self.tamanho, self.pos_atual, proximo_alvo, self.kb)
             if caminho:
@@ -144,6 +152,7 @@ class AgenteBaseadoConhecimento:
                 self.registro_acoes.append(f"Retorno: Moveu-se para ({movimento[0]},{movimento[1]})")
                 return True
             print("[SUCESSO] Ouro coletado e retorno executado em seguranca.")
+            self.notificacoes.append('[SUCESSO] Ouro coletado e retorno executado')
             return False
 
     def executar_simulacao(self):
@@ -169,3 +178,7 @@ class AgenteBaseadoConhecimento:
             print(f" - {log}")
         print("\nSentencas Atomicas Provadas na KB:")
         print(sorted(list(self.kb.fatos)))
+
+    def get_notificacoes(self, n: int):
+        return self.notificacoes[len(self.notificacoes)-min(len(self.notificacoes), n):][::-1]
+    

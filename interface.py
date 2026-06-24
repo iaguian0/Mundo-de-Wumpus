@@ -9,10 +9,10 @@ from agente import AgenteBaseadoConhecimento
 # CONFIGURAÇÕES
 # ==========================================
 
-GRID_SIZE = 6
+GRID_SIZE = 4
 CELL_SIZE = 120
 
-PANEL_WIDTH = 250
+PANEL_WIDTH = 360
 
 WIDTH = GRID_SIZE * CELL_SIZE + PANEL_WIDTH
 HEIGHT = GRID_SIZE * CELL_SIZE
@@ -42,6 +42,8 @@ RED = (200, 50, 50)
 YELLOW = (255, 215, 0)
 BLUE = (50, 100, 255)
 
+ALPHA = 80
+
 def draw_world():
 
     for row in range(GRID_SIZE):
@@ -58,20 +60,25 @@ def draw_world():
             )
 
             pygame.draw.rect(screen, WHITE, rect, 2)
+            
+
 
             cell = world.grade[row][col]
+            fatos_agente = agente.kb.fatos
 
-            # if cell == "P":
             if 'Poco' in cell:
                 text = font.render("P", True, RED)
+                if f'Poco({row},{col})' not in fatos_agente: text.set_alpha(ALPHA)
 
-            # elif cell == "W":
+
             elif 'Wumpus' in cell:
                 text = font.render("W", True, GREEN)
+                if f'Wumpus({row},{col})' not in fatos_agente: text.set_alpha(ALPHA)
 
-            # elif cell == "O":
+
             elif 'Ouro' in cell:
                 text = font.render("O", True, YELLOW)
+                if f'Ouro({row},{col})' not in fatos_agente: text.set_alpha(ALPHA)
 
             else:
                 continue
@@ -118,16 +125,23 @@ def draw_panel():
 
     title = font.render("Status", True, WHITE)
     screen.blit(title, (panel_x + 20, 20))
+    
     agent_row, agent_col = agente.pos_atual
     steps = agente.passo
+
+    notificacoes = agente.get_notificacoes(3)
+
     info = [
         f"Passos: {steps}",
         f"Linha: {agent_row}",
         f"Coluna: {agent_col}",
         "",
         "Objetivo:",
-        "Encontrar ouro"
+        "Encontrar ouro",
+        "Notificacoes:",
     ]
+
+    info.extend(notificacoes)
 
     y = 90
 
@@ -143,6 +157,7 @@ def draw_panel():
         y += 35
 
 def move_agent():
+    global continuar
     continuar = agente.caminhar()
     
     if not continuar: 
@@ -157,6 +172,7 @@ pygame.time.set_timer(
 )
 
 running = True
+continuar = True
 
 while running:
 
@@ -167,7 +183,7 @@ while running:
         if event.type == pygame.QUIT:
             running = False
 
-        if event.type == MOVE_EVENT:
+        if event.type == MOVE_EVENT and continuar:
             move_agent()
 
     screen.fill(BLACK)
