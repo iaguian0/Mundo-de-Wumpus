@@ -21,6 +21,9 @@ class AgenteBaseadoConhecimento:
         # Conhecimento inicial da celula de partida
         self.kb.tell_visitado(self.pos_atual[0], self.pos_atual[1])
         self.kb.inferir_conhecimento()
+        self.passo = 0
+
+        self.caminho_retorno = []
 
     def perceber_e_inferir(self):
         r, c = self.pos_atual
@@ -83,17 +86,15 @@ class AgenteBaseadoConhecimento:
             return melhor_celula
 
         return None
+    
+    def caminhar(self):
+        if not self.esta_vivo: return False
 
-    def executar_simulacao(self):
-        print("\n==================================================")
-        print("INICIO DA SIMULACAO: MUNDO DE WUMPUS (HORN-SAT)")
-        print("==================================================")
-        passo = 0
-        
-        while self.esta_vivo and not self.tem_ouro:
-            passo += 1
+        if not self.tem_ouro:
+            self.passo += 1
             r, c = self.pos_atual
-            print(f"\nPASSO {passo} - Posicao Atual do Agente: ({r},{c})")
+
+            print(f"\nPASSO {self.passo} - Posicao Atual do Agente: ({r},{c})")
             
             self.perceber_e_inferir()
             
@@ -101,21 +102,23 @@ class AgenteBaseadoConhecimento:
                 print("[EVENTO] Ouro encontrado. Coletando e planejando retorno.")
                 self.registro_acoes.append(f"Pegou o ouro em ({r},{c})")
                 self.tem_ouro = True
-                break
+                self.caminho_retorno = encontrar_caminho(self.tamanho, self.pos_atual, self.env.inicio_agente, self.kb)
+                return True
 
             if "Wumpus" in self.env.grade[r][c]:
                 print("[FAIL] Agente eliminado pelo Wumpus.")
                 self.esta_vivo = False
-                break
+                return False
+
             if "Poco" in self.env.grade[r][c]:
                 print("[FAIL] Agente caiu em um poco.")
                 self.esta_vivo = False
-                break
+                return False
 
             proximo_alvo = self.escolher_proximo_movimento()
             if proximo_alvo is None:
                 print("[AVISO] Agente encurralado. Sem rotas validas disponiveis.")
-                break
+                return True
                 
             caminho = encontrar_caminho(self.tamanho, self.pos_atual, proximo_alvo, self.kb)
             if caminho:
@@ -129,16 +132,28 @@ class AgenteBaseadoConhecimento:
                 self.historico_trajetoria.append(proximo_alvo)
                 self.kb.tell_visitado(proximo_alvo[0], proximo_alvo[1])
                 self.registro_acoes.append(f"Moveu-se para ({proximo_alvo[0]},{proximo_alvo[1]})")
-
-        if self.tem_ouro and self.esta_vivo:
+            return True
+        
+        else:
             print("\nIniciando trajetoria de retorno para a origem (0,0)...")
-            caminho_retorno = encontrar_caminho(self.tamanho, self.pos_atual, self.env.inicio_agente, self.kb)
-            if caminho_retorno:
-                for movimento in caminho_retorno:
-                    self.pos_atual = movimento
-                    self.historico_trajetoria.append(movimento)
-                    self.registro_acoes.append(f"Retorno: Moveu-se para ({movimento[0]},{movimento[1]})")
+            print(self.caminho_retorno)
+            if self.caminho_retorno:
+                movimento = self.caminho_retorno.pop(0)
+                self.pos_atual = movimento
+                self.historico_trajetoria.append(movimento)
+                self.registro_acoes.append(f"Retorno: Moveu-se para ({movimento[0]},{movimento[1]})")
+                return True
             print("[SUCESSO] Ouro coletado e retorno executado em seguranca.")
+            return False
+
+    def executar_simulacao(self):
+        print("\n==================================================")
+        print("INICIO DA SIMULACAO: MUNDO DE WUMPUS (HORN-SAT)")
+        print("==================================================")
+
+        continuar = True
+        while continuar:
+            continuar = self.caminhar()
 
         self._exibir_relatorio_final()
 

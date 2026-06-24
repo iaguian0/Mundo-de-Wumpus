@@ -15,6 +15,7 @@ class AmbienteWumpus:
         self.inicio_agente: Tuple[int, int] = (0, 0)
         
         self._gerar_mundo()
+        print(self.grade)
 
     def _obter_vizinhos(self, r: int, c: int) -> List[Tuple[int, int]]:
         vizinhos = []
