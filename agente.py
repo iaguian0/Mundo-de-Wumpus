@@ -8,10 +8,10 @@ class AgenteBaseadoConhecimento:
     Agente que toma decisoes deliberativas a partir das percepcoes e inferencias
     logicas armazenadas de forma estruturada na Base de Conhecimento.
     """
-    def __init__(self, tamanho: int, env: AmbienteWumpus):
+    def __init__(self, tamanho: int, env: AmbienteWumpus, kb: BaseConhecimento = None):
         self.tamanho = tamanho
         self.env = env
-        self.kb = BaseConhecimento(tamanho)
+        self.kb = kb if kb else BaseConhecimento(tamanho)
         self.pos_atual = env.inicio_agente
         self.tem_ouro = False
         self.esta_vivo = True
@@ -48,11 +48,13 @@ class AgenteBaseadoConhecimento:
         self.kb.inferir_conhecimento()
 
     def escolher_proximo_movimento(self) -> Optional[Tuple[int, int]]:
-        seguras_nao_visitadas = []
+        nao_vizitadas = []
         for r in range(self.tamanho):
             for c in range(self.tamanho):
-                if self.kb.eh_segura(r, c) and (r, c) not in self.kb.visitados:
-                    seguras_nao_visitadas.append((r, c))
+                if (r, c) not in self.kb.visitados:
+                    nao_vizitadas.append((r, c))
+
+        seguras_nao_visitadas = [(r, c) for r, c in nao_vizitadas if self.kb.eh_segura(r, c)]
 
         if seguras_nao_visitadas:
             menor_caminho = None
@@ -67,17 +69,20 @@ class AgenteBaseadoConhecimento:
                 return celula_escolhida
 
         # Gerenciamento de Risco calculado quando encurralado
+        print('Gerenciamento de Risco calculado quando encurralado')
         vizinhos = []
         for dr, dc in [(-1, 0), (1, 0), (0, -1), (0, 1)]:
             nr, nc = self.pos_atual[0] + dr, self.pos_atual[1] + dc
             if 0 <= nr < self.tamanho and 0 <= nc < self.tamanho:
                 vizinhos.append((nr, nc))
                 
-        vizinhos_nao_visitados = [n for n in vizinhos if n not in self.kb.visitados]
-        if vizinhos_nao_visitados:
-            melhor_celula = vizinhos_nao_visitados[0]
-            menor_risco = 999
-            for n in vizinhos_nao_visitados:
+        nao_visitados_possiveis = [(r, c) for r, c in nao_vizitadas if not self.kb.eh_poco(r, c) and not self.kb.eh_wumpus(r, c)]
+        print(nao_visitados_possiveis)
+        if nao_visitados_possiveis:
+            melhor_celula = nao_visitados_possiveis[0]
+            menor_risco = float('inf')
+            for n in nao_visitados_possiveis:
+
                 risco = 0
                 if self.kb.eh_suspeita_poco(n[0], n[1]): risco += 1
                 if self.kb.eh_suspeita_wumpus(n[0], n[1]): risco += 2
@@ -164,6 +169,7 @@ class AgenteBaseadoConhecimento:
         continuar = True
         while continuar:
             continuar = self.caminhar()
+            self.env.exibir_ambiente(self.pos_atual)
 
         self._exibir_relatorio_final()
 

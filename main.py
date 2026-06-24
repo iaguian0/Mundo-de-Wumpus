@@ -1,5 +1,6 @@
 from ambiente import AmbienteWumpus
 from agente import AgenteBaseadoConhecimento
+from conhecimento import BaseConhecimento
 
 def executar_projeto():
     # Define a dimensao minima exigida de 4x4
@@ -11,8 +12,9 @@ def executar_projeto():
     print("\nMapa Real do Mundo Oculto (A=Agente, W=Wumpus, P=Poco, O=Ouro):")
     mundo.exibir_ambiente(mundo.inicio_agente)
     
-    # Instancia o Agente com a KB integrada
-    agente = AgenteBaseadoConhecimento(tamanho=TAMANHO_GRADE, env=mundo)
+    kb = BaseConhecimento(TAMANHO_GRADE)
+    
+    agente = AgenteBaseadoConhecimento(tamanho=TAMANHO_GRADE, env=mundo, kb=kb)
     
     # Executa as inferencias logicas e as acoes
     agente.executar_simulacao()

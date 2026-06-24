@@ -81,6 +81,9 @@ class BaseConhecimento:
                     # Regra de Seguranca: se provado que nao tem Wumpus E nao tem Poco, entao e Segura
                     if f"~Poco({r},{c})" in self.fatos and f"~Wumpus({r},{c})" in self.fatos:
                         self.tell(f"Segura({r},{c})")
+
+                    if f"Brilho({r},{c})" in self.fatos:
+                            self.tell(f"Ouro({r},{c})")
             
             if len(self.fatos) == total_antes:
                 mudou = False
@@ -97,3 +100,9 @@ class BaseConhecimento:
 
     def eh_suspeita_wumpus(self, r: int, c: int) -> bool:
         return not self.ask(f"~Wumpus({r},{c})")
+    
+    def eh_poco(self, r: int, c: int) -> bool:
+        return self.ask(f"Poco({r},{c})")
+
+    def eh_wumpus(self, r: int, c: int) -> bool:
+        return self.ask(f"Wumpus({r},{c})")

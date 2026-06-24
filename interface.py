@@ -9,7 +9,7 @@ from agente import AgenteBaseadoConhecimento
 # CONFIGURAÇÕES
 # ==========================================
 
-GRID_SIZE = 4
+GRID_SIZE = 5
 CELL_SIZE = 120
 
 PANEL_WIDTH = 360
@@ -170,7 +170,7 @@ MOVE_EVENT = pygame.USEREVENT + 1
 
 pygame.time.set_timer(
     MOVE_EVENT,
-    1000
+    400
 )
 
 running = True
@@ -179,7 +179,7 @@ continuar = True
 while running:
 
     clock.tick(FPS)
-
+ 
     for event in pygame.event.get():
 
         if event.type == pygame.QUIT:
