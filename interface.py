@@ -59,12 +59,15 @@ def draw_world():
                 CELL_SIZE
             )
 
-            pygame.draw.rect(screen, WHITE, rect, 2)
-            
+            fatos_agente = agente.kb.fatos
+
+            if f'Segura({row},{col})' in fatos_agente:
+                pygame.draw.rect(screen, WHITE, rect, 2)
+            else:
+                pygame.draw.rect(screen, GRAY, rect, 2)
 
 
             cell = world.grade[row][col]
-            fatos_agente = agente.kb.fatos
 
             if 'Poco' in cell:
                 text = font.render("P", True, RED)
@@ -133,8 +136,7 @@ def draw_panel():
 
     info = [
         f"Passos: {steps}",
-        f"Linha: {agent_row}",
-        f"Coluna: {agent_col}",
+        f"Linha: {agent_row} - Coluna: {agent_col}",
         "",
         "Objetivo:",
         "Encontrar ouro",

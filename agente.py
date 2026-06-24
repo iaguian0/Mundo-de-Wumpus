@@ -92,7 +92,6 @@ class AgenteBaseadoConhecimento:
         if not self.esta_vivo: return False
 
         if not self.tem_ouro:
-            self.passo += 1
             r, c = self.pos_atual
 
             print(f"\nPASSO {self.passo} - Posicao Atual do Agente: ({r},{c})")
@@ -129,6 +128,7 @@ class AgenteBaseadoConhecimento:
                 return False
                 
             caminho = encontrar_caminho(self.tamanho, self.pos_atual, proximo_alvo, self.kb)
+            self.passo += 1
             if caminho:
                 movimento = caminho[0]
                 self.pos_atual = movimento
@@ -146,13 +146,14 @@ class AgenteBaseadoConhecimento:
             print("\nIniciando trajetoria de retorno para a origem (0,0)...")
             print(self.caminho_retorno)
             if self.caminho_retorno:
+                self.passo += 1
                 movimento = self.caminho_retorno.pop(0)
                 self.pos_atual = movimento
                 self.historico_trajetoria.append(movimento)
                 self.registro_acoes.append(f"Retorno: Moveu-se para ({movimento[0]},{movimento[1]})")
                 return True
             print("[SUCESSO] Ouro coletado e retorno executado em seguranca.")
-            self.notificacoes.append('[SUCESSO] Ouro coletado e retorno executado')
+            self.notificacoes.append('[SUCESSO] Retorno executado')
             return False
 
     def executar_simulacao(self):
