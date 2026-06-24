@@ -122,11 +122,11 @@ class AgenteBaseadoConhecimento:
                 
             caminho = encontrar_caminho(self.tamanho, self.pos_atual, proximo_alvo, self.kb)
             if caminho:
-                for movimento in caminho:
-                    self.pos_atual = movimento
-                    self.historico_trajetoria.append(movimento)
-                    self.kb.tell_visitado(movimento[0], movimento[1])
-                    self.registro_acoes.append(f"Moveu-se para ({movimento[0]},{movimento[1]})")
+                movimento = caminho[0]
+                self.pos_atual = movimento
+                self.historico_trajetoria.append(movimento)
+                self.kb.tell_visitado(movimento[0], movimento[1])
+                self.registro_acoes.append(f"Moveu-se para ({movimento[0]},{movimento[1]})")
             else:
                 self.pos_atual = proximo_alvo
                 self.historico_trajetoria.append(proximo_alvo)
