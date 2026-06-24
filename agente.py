@@ -70,12 +70,7 @@ class AgenteBaseadoConhecimento:
 
         # Gerenciamento de Risco calculado quando encurralado
         print('Gerenciamento de Risco calculado quando encurralado')
-        vizinhos = []
-        for dr, dc in [(-1, 0), (1, 0), (0, -1), (0, 1)]:
-            nr, nc = self.pos_atual[0] + dr, self.pos_atual[1] + dc
-            if 0 <= nr < self.tamanho and 0 <= nc < self.tamanho:
-                vizinhos.append((nr, nc))
-                
+
         nao_visitados_possiveis = [(r, c) for r, c in nao_vizitadas if not self.kb.eh_poco(r, c) and not self.kb.eh_wumpus(r, c)]
         print(nao_visitados_possiveis)
         if nao_visitados_possiveis:
@@ -131,20 +126,11 @@ class AgenteBaseadoConhecimento:
                 print("[AVISO] Agente encurralado. Sem rotas validas disponiveis.")
                 self.notificacoes.append('[AVISO] Agente encurralado')
                 return False
-                
-            caminho = encontrar_caminho(self.tamanho, self.pos_atual, proximo_alvo, self.kb)
-            self.passo += 1
-            if caminho:
-                movimento = caminho[0]
-                self.pos_atual = movimento
-                self.historico_trajetoria.append(movimento)
-                self.kb.tell_visitado(movimento[0], movimento[1])
-                self.registro_acoes.append(f"Moveu-se para ({movimento[0]},{movimento[1]})")
-            else:
-                self.pos_atual = proximo_alvo
-                self.historico_trajetoria.append(proximo_alvo)
-                self.kb.tell_visitado(proximo_alvo[0], proximo_alvo[1])
-                self.registro_acoes.append(f"Moveu-se para ({proximo_alvo[0]},{proximo_alvo[1]})")
+
+            self.pos_atual = proximo_alvo
+            self.historico_trajetoria.append(proximo_alvo)
+            self.kb.tell_visitado(proximo_alvo[0], proximo_alvo[1])
+            self.registro_acoes.append(f"Moveu-se para ({proximo_alvo[0]},{proximo_alvo[1]})")
             return True
         
         else:

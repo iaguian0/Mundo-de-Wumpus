@@ -9,7 +9,7 @@ from agente import AgenteBaseadoConhecimento
 # CONFIGURAÇÕES
 # ==========================================
 
-GRID_SIZE = 5
+GRID_SIZE = 4
 CELL_SIZE = 120
 
 PANEL_WIDTH = 360
