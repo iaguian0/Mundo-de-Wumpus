@@ -3,13 +3,14 @@ import sys
 
 from ambiente import AmbienteWumpus
 from agente import AgenteBaseadoConhecimento
+from sprites import SpriteManager
 
 
 # ==========================================
 # CONFIGURAÇÕES
 # ==========================================
 
-GRID_SIZE = 5
+GRID_SIZE = 6
 CELL_SIZE = 120
 
 PANEL_WIDTH = 360
@@ -19,34 +20,73 @@ HEIGHT = GRID_SIZE * CELL_SIZE
 
 FPS = 60
 
-world = AmbienteWumpus(tamanho=GRID_SIZE)
-agente = AgenteBaseadoConhecimento(tamanho=GRID_SIZE, env=world)
 
+# ==========================================
+# AMBIENTE E AGENTE
+# ==========================================
+
+world = AmbienteWumpus(tamanho=GRID_SIZE)
+
+agente = AgenteBaseadoConhecimento(
+    tamanho=GRID_SIZE,
+    env=world
+)
+
+
+# ==========================================
+# PYGAME
+# ==========================================
 
 pygame.init()
 
-screen = pygame.display.set_mode((WIDTH, HEIGHT))
+screen = pygame.display.set_mode(
+    (
+        WIDTH,
+        HEIGHT
+    )
+)
+
 pygame.display.set_caption("Mundo de Wumpus")
 
 clock = pygame.time.Clock()
 
+sprites = SpriteManager(CELL_SIZE)
+
+
+# ==========================================
+# FONTES
+# ==========================================
+
 font = pygame.font.SysFont(None, 40)
+
 small_font = pygame.font.SysFont(None, 28)
 
+
+# ==========================================
+# CORES
+# ==========================================
+
 BLACK = (20, 20, 20)
+
 WHITE = (255, 255, 255)
+
 GRAY = (60, 60, 60)
 
-GREEN = (0, 180, 0)
-RED = (200, 50, 50)
 YELLOW = (255, 215, 0)
-BLUE = (50, 100, 255)
 
 ALPHA = 80
 
+
+# ==========================================
+# DESENHAR MUNDO
+# ==========================================
+
 def draw_world():
 
+    fatos_agente = agente.kb.fatos
+
     for row in range(GRID_SIZE):
+
         for col in range(GRID_SIZE):
 
             x = col * CELL_SIZE
@@ -59,57 +99,125 @@ def draw_world():
                 CELL_SIZE
             )
 
-            fatos_agente = agente.kb.fatos
+
+            # ==========================================
+            # ADICIONADO: RENDERIZAR CHÃO PRIMEIRO
+            # ==========================================
+            sprite_chao = sprites.chao.copy()
+            
+            # Se o agente não sabe se a célula é segura, o chão fica escurecido
+            if f'Segura({row},{col})' not in fatos_agente:
+                sprite_chao.set_alpha(ALPHA)
+                
+            screen.blit(sprite_chao, (x, y))
+
+
+            # GRADE (BORDAS)
 
             if f'Segura({row},{col})' in fatos_agente:
-                pygame.draw.rect(screen, WHITE, rect, 2)
-            else:
-                pygame.draw.rect(screen, GRAY, rect, 2)
 
+                pygame.draw.rect(
+                    screen,
+                    WHITE,
+                    rect,
+                    2
+                )
+
+            else:
+
+                pygame.draw.rect(
+                    screen,
+                    GRAY,
+                    rect,
+                    2
+                )
+
+
+            # CONTEÚDO DA CÉLULA
 
             cell = world.grade[row][col]
 
-            if 'Poco' in cell:
-                text = font.render("P", True, RED)
-                if f'Poco({row},{col})' not in fatos_agente: text.set_alpha(ALPHA)
 
+            # POÇO
+
+            if 'Poco' in cell:
+
+                sprite = sprites.poco.copy()
+
+                if f'Poco({row},{col})' not in fatos_agente:
+
+                    sprite.set_alpha(ALPHA)
+
+                screen.blit(
+                    sprite,
+                    (
+                        x,
+                        y
+                    )
+                )
+
+
+            # WUMPUS
 
             elif 'Wumpus' in cell:
-                text = font.render("W", True, GREEN)
-                if f'Wumpus({row},{col})' not in fatos_agente: text.set_alpha(ALPHA)
 
+                sprite = sprites.wumpus.copy()
+
+                if f'Wumpus({row},{col})' not in fatos_agente:
+
+                    sprite.set_alpha(ALPHA)
+
+                screen.blit(
+                    sprite,
+                    (
+                        x,
+                        y
+                    )
+                )
+
+
+            # OURO (sprite)
 
             elif 'Ouro' in cell:
-                text = font.render("O", True, YELLOW)
-                if f'Ouro({row},{col})' not in fatos_agente: text.set_alpha(ALPHA)
 
-            else:
-                continue
+                sprite = sprites.ouro.copy()
 
-            text_rect = text.get_rect(
-                center=(x + CELL_SIZE // 2,
-                        y + CELL_SIZE // 2)
-            )
+                if f'Ouro({row},{col})' not in fatos_agente:
 
-            screen.blit(text, text_rect)
+                    sprite.set_alpha(ALPHA)
+
+                screen.blit(
+                    sprite,
+                    (
+                        x,
+                        y
+                    )
+                )
+
+
+# ==========================================
+# DESENHAR AGENTE
+# ==========================================
 
 def draw_agent():
-    y, x = agente.pos_atual
-    x = x * CELL_SIZE + CELL_SIZE // 2
-    y = y * CELL_SIZE + CELL_SIZE // 2
 
-    pygame.draw.circle(
-        screen,
-        BLUE,
-        (x, y),
-        25
+    row, col = agente.pos_atual
+
+    x = col * CELL_SIZE
+    y = row * CELL_SIZE
+
+    screen.blit(
+        sprites.jogador,
+        (
+            x,
+            y
+        )
     )
 
-    label = small_font.render("A", True, WHITE)
 
-    label_rect = label.get_rect(center=(x, y))
-
-    screen.blit(label, label_rect)
+# ==========================================
+# PAINEL LATERAL
+# ==========================================
 
 def draw_panel():
 
@@ -126,21 +234,35 @@ def draw_panel():
         )
     )
 
-    title = font.render("Status", True, WHITE)
-    screen.blit(title, (panel_x + 20, 20))
-    
+    title = font.render(
+        "Status",
+        True,
+        WHITE
+    )
+
+    screen.blit(
+        title,
+        (
+            panel_x + 20,
+            20
+        )
+    )
+
     agent_row, agent_col = agente.pos_atual
+
     steps = agente.passo
 
     notificacoes = agente.get_notificacoes(3)
 
     info = [
         f"Passos: {steps}",
-        f"Linha: {agent_row} - Coluna: {agent_col}",
+        f"Linha: {agent_row}",
+        f"Coluna: {agent_col}",
         "",
         "Objetivo:",
         "Encontrar ouro",
-        "Notificacoes:",
+        "",
+        "Notificacoes:"
     ]
 
     info.extend(notificacoes)
@@ -149,22 +271,37 @@ def draw_panel():
 
     for line in info:
 
-        text = small_font.render(line, True, WHITE)
+        text = small_font.render(
+            line,
+            True,
+            WHITE
+        )
 
         screen.blit(
             text,
-            (panel_x + 20, y)
+            (
+                panel_x + 20,
+                y
+            )
         )
 
         y += 35
 
-def move_agent():
-    global continuar
-    continuar = agente.caminhar()
-    
-    if not continuar: 
-        return
 
+# ==========================================
+# MOVIMENTO DO AGENTE
+# ==========================================
+
+def move_agent():
+
+    global continuar
+
+    continuar = agente.caminhar()
+
+
+# ==========================================
+# EVENTO AUTOMÁTICO
+# ==========================================
 
 MOVE_EVENT = pygame.USEREVENT + 1
 
@@ -173,28 +310,40 @@ pygame.time.set_timer(
     400
 )
 
+
+# ==========================================
+# LOOP PRINCIPAL
+# ==========================================
+
 running = True
+
 continuar = True
 
 while running:
 
     clock.tick(FPS)
- 
+
     for event in pygame.event.get():
 
         if event.type == pygame.QUIT:
+
             running = False
 
         if event.type == MOVE_EVENT and continuar:
+
             move_agent()
+
 
     screen.fill(BLACK)
 
     draw_world()
+
     draw_agent()
+
     draw_panel()
 
     pygame.display.flip()
 
 pygame.quit()
+
 sys.exit()
