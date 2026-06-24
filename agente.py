@@ -66,18 +66,28 @@ class AgenteBaseadoConhecimento:
             if celula_escolhida:
                 return celula_escolhida
 
-        # Gerenciamento de Risco calculado quando encurralado
-        vizinhos = []
-        for dr, dc in [(-1, 0), (1, 0), (0, -1), (0, 1)]:
-            nr, nc = self.pos_atual[0] + dr, self.pos_atual[1] + dc
-            if 0 <= nr < self.tamanho and 0 <= nc < self.tamanho:
-                vizinhos.append((nr, nc))
-                
-        vizinhos_nao_visitados = [n for n in vizinhos if n not in self.kb.visitados]
-        if vizinhos_nao_visitados:
-            melhor_celula = vizinhos_nao_visitados[0]
+
+        # Gerenciamento de Risco Global (Cura da Miopia)
+        fronteiras = set()
+        # Coleta os vizinhos as casas que o agente já visitou
+        for r, c in self.kb.visitados:
+            for dr, dc in [(-1, 0), (1, 0), (0, -1), (0, 1)]:
+                nr, nc = r + dr, c + dc
+                if 0 <= nr < self.tamanho and 0 <= nc < self.tamanho:
+                    if (nr, nc) not in self.kb.visitados:
+                        fronteiras.add((nr, nc))
+        
+        #ignora buracos/monstros confirmados em toda a fronteira
+        vizinhos_viaveis = []
+        for n in fronteiras:
+            if self.kb.ask(f"Poco({n[0]},{n[1]})") or self.kb.ask(f"Wumpus({n[0]},{n[1]})"):
+                continue
+            vizinhos_viaveis.append(n)
+
+        if vizinhos_viaveis:
+            melhor_celula = vizinhos_viaveis[0]
             menor_risco = 999
-            for n in vizinhos_nao_visitados:
+            for n in vizinhos_viaveis:
                 risco = 0
                 if self.kb.eh_suspeita_poco(n[0], n[1]): risco += 1
                 if self.kb.eh_suspeita_wumpus(n[0], n[1]): risco += 2
@@ -182,4 +192,3 @@ class AgenteBaseadoConhecimento:
 
     def get_notificacoes(self, n: int):
         return self.notificacoes[len(self.notificacoes)-min(len(self.notificacoes), n):][::-1]
-    
