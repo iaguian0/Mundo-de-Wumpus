@@ -9,13 +9,19 @@ from agente import AgenteBaseadoConhecimento
 # CONFIGURAÇÕES
 # ==========================================
 
-GRID_SIZE = 4
-CELL_SIZE = 120
-
 PANEL_WIDTH = 360
 
-WIDTH = GRID_SIZE * CELL_SIZE + PANEL_WIDTH
-HEIGHT = GRID_SIZE * CELL_SIZE
+TAMANHO_H_W = 600
+GRID_SIZE = 10
+
+
+CELL_SIZE = 70
+
+WIDTH = TAMANHO_H_W + PANEL_WIDTH
+HEIGHT = TAMANHO_H_W 
+
+CELL_SIZE = int(HEIGHT / GRID_SIZE)
+
 
 FPS = 60
 
@@ -170,7 +176,7 @@ MOVE_EVENT = pygame.USEREVENT + 1
 
 pygame.time.set_timer(
     MOVE_EVENT,
-    400
+    200
 )
 
 running = True

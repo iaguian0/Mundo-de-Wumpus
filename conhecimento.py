@@ -106,3 +106,6 @@ class BaseConhecimento:
 
     def eh_wumpus(self, r: int, c: int) -> bool:
         return self.ask(f"Wumpus({r},{c})")
+
+    def eh_ouro(self, r: int, c: int) -> bool:
+        return self.ask(f"Ouro({r},{c})")

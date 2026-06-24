@@ -100,7 +100,7 @@ class AgenteBaseadoConhecimento:
             
             self.perceber_e_inferir()
             
-            if "Ouro" in self.env.grade[r][c]:
+            if  self.kb.eh_ouro(r, c):
                 print("[EVENTO] Ouro encontrado. Coletando e planejando retorno.")
                 self.notificacoes.append('[EVENTO] Ouro encontrado')
 
