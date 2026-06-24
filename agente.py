@@ -66,28 +66,19 @@ class AgenteBaseadoConhecimento:
             if celula_escolhida:
                 return celula_escolhida
 
-        # =========================================================
-        # Gerenciamento de Risco Global (Cura da Miopia)
-        # =========================================================
-        fronteiras = set()
-        # Coleta os vizinhos de TODAS as casas que o agente já visitou
+
+        vizinhos_viaveis = []
+
         for r, c in self.kb.visitados:
             for dr, dc in [(-1, 0), (1, 0), (0, -1), (0, 1)]:
                 nr, nc = r + dr, c + dc
                 if 0 <= nr < self.tamanho and 0 <= nc < self.tamanho:
-                    if (nr, nc) not in self.kb.visitados:
-                        fronteiras.add((nr, nc))
+                    if (nr, nc) not in self.kb.visitados and (not self.kb.eh_wumpus(nr, nc) and not self.kb.eh_poco(nr, nc)):
+                        vizinhos_viaveis.append((nr, nc))
         
-        # Filtro de sobrevivência: ignora buracos/monstros confirmados em toda a fronteira
-        vizinhos_viaveis = []
-        for n in fronteiras:
-            if self.kb.ask(f"Poco({n[0]},{n[1]})") or self.kb.ask(f"Wumpus({n[0]},{n[1]})"):
-                continue
-            vizinhos_viaveis.append(n)
-
         if vizinhos_viaveis:
             melhor_celula = vizinhos_viaveis[0]
-            menor_risco = 999
+            menor_risco = float('inf')
             for n in vizinhos_viaveis:
                 risco = 0
                 if self.kb.eh_suspeita_poco(n[0], n[1]): risco += 1

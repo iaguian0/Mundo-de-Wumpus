@@ -52,13 +52,6 @@ class AmbienteWumpus:
             for nr, nc in self._obter_vizinhos(posicao_pit[0], posicao_pit[1]):
                 self.grade[nr][nc].add("Brisa")
 
-        self.grade = [
-            [set(), {'Brisa'}, {'Poco'}, {'Ouro', 'Brisa'}], 
-            [set(), set(), {'Brisa', 'Fedor'}, {'Brisa'}], 
-            [set(), {'Fedor'}, {'Wumpus'}, {'Fedor', 'Poco'}], 
-            [set(), set(), {'Fedor'}, {'Brisa'}]
-        ]
-
 
     def obter_percepcoes(self, r: int, c: int) -> Set[str]:
         percepcoes = set()
