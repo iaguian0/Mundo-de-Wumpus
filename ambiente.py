@@ -26,7 +26,8 @@ class AmbienteWumpus:
         return vizinhos
 
     def _gerar_mundo(self):
-        todas_posicoes = [(r, c) for r in range(self.tamanho) for c in range(self.tamanho) if (r, c) != self.inicio_agente]
+        restricoes_pos = [(self.inicio_agente[0]+i, self.inicio_agente[1]+j) for i in range(-1, 2) for j in range(-1, 2)]
+        todas_posicoes = [(r, c) for r in range(self.tamanho) for c in range(self.tamanho) if (r, c) not in restricoes_pos]
         random.shuffle(todas_posicoes)
         
         # Posicionar Ouro
