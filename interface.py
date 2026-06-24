@@ -9,7 +9,7 @@ from agente import AgenteBaseadoConhecimento
 # CONFIGURAÇÕES
 # ==========================================
 
-GRID_SIZE = 4
+GRID_SIZE = 6
 CELL_SIZE = 120
 
 PANEL_WIDTH = 250
@@ -19,37 +19,9 @@ HEIGHT = GRID_SIZE * CELL_SIZE
 
 FPS = 60
 
-# ==========================================
-# MUNDO
-# ==========================================
-
-# world = [
-#     ["A", "", "", "P"],
-#     ["", "", "W", ""],
-#     ["O", "", "", ""],
-#     ["", "", "", ""]
-# ]
 world = AmbienteWumpus(tamanho=GRID_SIZE)
 agente = AgenteBaseadoConhecimento(tamanho=GRID_SIZE, env=world)
 
-agent_row = 0
-agent_col = 0
-
-steps = 0
-
-# Caminho de exemplo
-path = [
-    (0, 1),
-    (1, 1),
-    (2, 1),
-    (2, 0)  # Ouro
-]
-
-path_index = 0
-
-# ==========================================
-# PYGAME
-# ==========================================
 
 pygame.init()
 
@@ -61,10 +33,6 @@ clock = pygame.time.Clock()
 font = pygame.font.SysFont(None, 40)
 small_font = pygame.font.SysFont(None, 28)
 
-# ==========================================
-# CORES
-# ==========================================
-
 BLACK = (20, 20, 20)
 WHITE = (255, 255, 255)
 GRAY = (60, 60, 60)
@@ -73,10 +41,6 @@ GREEN = (0, 180, 0)
 RED = (200, 50, 50)
 YELLOW = (255, 215, 0)
 BLUE = (50, 100, 255)
-
-# ==========================================
-# FUNÇÕES
-# ==========================================
 
 def draw_world():
 
@@ -184,9 +148,6 @@ def move_agent():
     if not continuar: 
         return
 
-# ==========================================
-# TIMER PARA MOVIMENTO AUTOMÁTICO
-# ==========================================
 
 MOVE_EVENT = pygame.USEREVENT + 1
 
@@ -194,10 +155,6 @@ pygame.time.set_timer(
     MOVE_EVENT,
     1000
 )
-
-# ==========================================
-# LOOP PRINCIPAL
-# ==========================================
 
 running = True
 
