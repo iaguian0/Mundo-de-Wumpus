@@ -55,7 +55,7 @@ class AmbienteWumpus:
         self.grade = [
             [set(), {'Brisa'}, {'Poco'}, {'Ouro', 'Brisa'}], 
             [set(), set(), {'Brisa', 'Fedor'}, {'Brisa'}], 
-            [set(), {'Fedor'}, {'Wumpus'}, {'Fedor', 'poco'}], 
+            [set(), {'Fedor'}, {'Wumpus'}, {'Fedor', 'Poco'}], 
             [set(), set(), {'Fedor'}, {'Brisa'}]
         ]
 
