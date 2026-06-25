@@ -51,7 +51,7 @@ class AmbienteWumpus:
                 self.grade[nr][nc].add("Fedor")
                 
         # Posicionar Pocos dinamicamente por tamanho
-        num_pocos = max(1, int((self.tamanho * self.tamanho) * 0.1))
+        num_pocos = max(2, int((self.tamanho * self.tamanho) * 0.1))
         for _ in range(num_pocos):
             if not todas_posicoes:
                 break

@@ -2,13 +2,14 @@ from typing import List, Tuple, Optional
 from ambiente import AmbienteWumpus
 from conhecimento import BaseConhecimento
 from busca import encontrar_caminho
+from faker import Faker
 
 class AgenteBaseadoConhecimento:
     """
     Agente que toma decisoes deliberativas a partir das percepcoes e inferencias
     logicas armazenadas de forma estruturada na Base de Conhecimento.
     """
-    def __init__(self, tamanho: int, env: AmbienteWumpus, kb: BaseConhecimento, inicio_agente):
+    def __init__(self, tamanho: int, env: AmbienteWumpus, kb: BaseConhecimento, inicio_agente, notificacoes):
         self.inicio_agente = inicio_agente
         self.tamanho = tamanho
         self.env = env
@@ -25,7 +26,14 @@ class AgenteBaseadoConhecimento:
         self.passo = 0
 
         self.caminho_retorno = []
-        self.notificacoes = []
+        self.notificacoes = notificacoes
+        self.name = self.__get_name()
+        self.concluido = False
+
+    def __get_name(self):
+        fk = Faker('pt_BR')
+        return fk.first_name()
+
 
     def perceber_e_inferir(self):
         r, c = self.pos_atual
@@ -102,7 +110,7 @@ class AgenteBaseadoConhecimento:
         return None
     
     def caminhar(self):
-        if not self.esta_vivo: return False
+        if not self.esta_vivo or self.concluido: return False
 
         if not self.tem_ouro:
             r, c = self.pos_atual
@@ -113,7 +121,7 @@ class AgenteBaseadoConhecimento:
             
             if  self.kb.eh_ouro(r, c):
                 print("[EVENTO] Ouro encontrado. Coletando e planejando retorno.")
-                self.notificacoes.append('[EVENTO] Ouro encontrado')
+                self.add_notificacoes('[EVENTO] Tesouro encontrado')
 
                 self.registro_acoes.append(f"Pegou o ouro em ({r},{c})")
                 self.tem_ouro = True
@@ -122,14 +130,14 @@ class AgenteBaseadoConhecimento:
 
             if "Wumpus" in self.env.grade[r][c]:
                 print("[FAIL] Agente eliminado pelo Wumpus.")
-                self.notificacoes.append('[FAIL] Agente eliminado pelo Wumpus.')
+                self.add_notificacoes('[FAIL] Agente eliminado pelo Wumpus.')
 
                 self.esta_vivo = False
                 return False
 
             if "Poco" in self.env.grade[r][c]:
                 print("[FAIL] Agente caiu em um poco.")
-                self.notificacoes.append('[FAIL] Agente caiu em um poco.')
+                self.add_notificacoes('[FAIL] Agente caiu em um poco.')
 
                 self.esta_vivo = False
                 return False
@@ -137,7 +145,7 @@ class AgenteBaseadoConhecimento:
             proximo_alvo = self.escolher_proximo_movimento()
             if proximo_alvo is None:
                 print("[AVISO] Agente encurralado. Sem rotas validas disponiveis.")
-                self.notificacoes.append('[AVISO] Agente encurralado')
+                self.add_notificacoes('[AVISO] Agente encurralado')
                 return False
                 
             caminho = encontrar_caminho(self.tamanho, self.pos_atual, proximo_alvo, self.kb)
@@ -157,7 +165,6 @@ class AgenteBaseadoConhecimento:
         
         else:
             print("\nIniciando trajetoria de retorno para a origem (0,0)...")
-            print(self.caminho_retorno)
             if self.caminho_retorno:
                 self.passo += 1
                 movimento = self.caminho_retorno.pop(0)
@@ -166,7 +173,8 @@ class AgenteBaseadoConhecimento:
                 self.registro_acoes.append(f"Retorno: Moveu-se para ({movimento[0]},{movimento[1]})")
                 return True
             print("[SUCESSO] Ouro coletado e retorno executado em seguranca.")
-            self.notificacoes.append('[SUCESSO] Retorno executado')
+            self.add_notificacoes('[SUCESSO] Retorno executado')
+            self.concluido = True
             return False
 
     def executar_simulacao(self):
@@ -195,3 +203,17 @@ class AgenteBaseadoConhecimento:
 
     def get_notificacoes(self, n: int):
         return self.notificacoes[len(self.notificacoes)-min(len(self.notificacoes), n):][::-1]
+    
+    def add_notificacoes(self, notif):
+        self.notificacoes.append(f'{self.name} - {notif}')
+
+    def ativo(self):
+        return self.esta_vivo and (not self.concluido)
+
+    def get_pontuacao(self):
+        pontuacao = 0
+        if self.concluido: pontuacao += 1000
+        if not self.esta_vivo: pontuacao += -1000
+        pontuacao -= self.passo
+
+        return pontuacao

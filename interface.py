@@ -33,7 +33,7 @@ cenario = InicializarCenario(grid_size=GRID_SIZE, n_agentes_time=N_AGENTES_P_TIM
 
 times = cenario.times
 world = cenario.world
-
+inicios = cenario.inicios
 
 # ==========================================
 # PYGAME
@@ -61,7 +61,10 @@ sprites = SpriteManager(CELL_SIZE)
 
 font = pygame.font.SysFont(None, 40)
 
-small_font = pygame.font.SysFont(None, 28)
+small_font = pygame.font.SysFont(None, 22)
+font_name = pygame.font.SysFont(None, int(CELL_SIZE*0.22))
+font_name.set_underline(True)
+font_name.set_bold(True)
 
 
 # ==========================================
@@ -82,9 +85,17 @@ BLUE = (50, 100, 255)
 ALPHA = 80
 
 cores_times = [RED, YELLOW, GREEN, BLUE]
+passos = 0
 
 def draw_world():
         TM_POINT = CELL_SIZE/8
+        achou_ouro = False
+        for agts in times:
+            for agt in agts:
+                if agt.tem_ouro:
+                    achou_ouro = True
+
+
         for row in range(GRID_SIZE):
             for col in range(GRID_SIZE):
 
@@ -100,10 +111,10 @@ def draw_world():
                 screen.blit(sprite_chao, (x, y))
 
                 for i, agentes in enumerate(times):
-                    fatos_agente = agentes[0].kb.fatos
+                    conhecimento = agentes[0].kb
+                    fatos_agente = conhecimento.fatos
                     
-                    if f'Segura({row},{col})' in fatos_agente:
-                        
+                    if conhecimento.eh_segura(row, col):
                         pygame.draw.rect(screen, WHITE, rect, 2)
                         pygame.draw.circle(screen, cores_times[i], (x+TM_POINT+((TM_POINT*1.5)*i), y+TM_POINT), int(TM_POINT/2))
 
@@ -125,12 +136,15 @@ def draw_world():
 
             
                     elif 'Ouro' in cell:
-                        sprite = sprites.ouro.copy()
+                        if achou_ouro:
+                            sprite = sprites.ouro_achado.copy()
+                        else:
+                            sprite = sprites.ouro.copy()
 
                         if f'Ouro({row},{col})' not in fatos_agente:
                             sprite.set_alpha(ALPHA)
 
-
+                        
                     else:
                         continue
 
@@ -146,12 +160,11 @@ def draw_agent():
             y = y * CELL_SIZE
             sprite = sprites.jogador.copy()
 
-            if N_TIMES > 1:
-                superficie_cor = pygame.Surface(sprite.get_size()).convert_alpha()
-                superficie_cor.fill(cores_times[t])
+                # superficie_cor = pygame.Surface(sprite.get_size()).convert_alpha()
+                # superficie_cor.fill(cores_times[t])
                 
                 
-                sprite.blit(superficie_cor, (0, 0), special_flags=pygame.BLEND_RGBA_MULT)
+                # sprite.blit(superficie_cor, (0, 0), special_flags=pygame.BLEND_RGBA_MULT)
             
             if not agente.esta_vivo:
                 sprite.set_alpha(ALPHA)
@@ -163,6 +176,21 @@ def draw_agent():
                     y
                 )
             )
+            nome_ag = agente.name.upper()
+            if N_TIMES > 1:
+                name = font_name.render(nome_ag, True, cores_times[t])
+            else:
+                name = font_name.render(nome_ag, True, WHITE)
+            
+            l_t, a_t = font_name.size(nome_ag)
+            
+            pos = (x, y+(y*0.02))
+            
+            pygame.draw.rect(screen, BLACK, (*pos, l_t, a_t))
+            screen.blit(name, pos)
+
+            
+                    
 
             if agente.tem_ouro:
                 screen.blit(
@@ -174,6 +202,20 @@ def draw_agent():
                 )
              
 
+def draw_inicios():
+    for inicio in inicios:
+        y, x = inicio
+        x = x * CELL_SIZE
+        y = y * CELL_SIZE
+        sprite = sprites.saida.copy()
+        sprite.set_alpha(180)
+        screen.blit(
+            sprite,
+            (
+                x,
+                y
+            )
+        )
 
 
 def draw_panel():
@@ -193,16 +235,13 @@ def draw_panel():
     agentes = times[0]
     title = font.render("Status", True, WHITE)
     screen.blit(title, (panel_x + 20, 20))
-    
-    agent_row, agent_col = agentes[0].pos_atual
-    steps = agentes[0].passo
 
-    notificacoes = agentes[0].get_notificacoes(3)
+    notificacoes = agentes[0].get_notificacoes(4)
 
     info = [
-        f"Passos: {steps}",
-        f"Linha: {agent_row}",
-        f"Coluna: {agent_col}",
+        f"Passos: {passos}",
+        # f"Linha: {agent_row}",
+        # f"Coluna: {agent_col}",
         "",
         "Objetivo:",
         "Encontrar ouro",
@@ -211,6 +250,8 @@ def draw_panel():
     ]
 
     info.extend(notificacoes)
+
+    info.append('Pontuaçoes:')
 
     y = 90
 
@@ -232,6 +273,32 @@ def draw_panel():
 
         y += 35
 
+    pont_times = []
+    for t, agentes in enumerate(times):
+        pontuacao_time = sum([ag.get_pontuacao() for ag in agentes])
+        pont_times.append((t, (f'Time {t+1}: {pontuacao_time}'), pontuacao_time))
+
+
+    pont_times.sort(key=lambda x: x[2], reverse=True)
+
+    for t, line, _ in pont_times:
+        text = small_font.render(
+            line,
+            True,
+            cores_times[t]
+        )
+
+        screen.blit(
+            text,
+            (
+                panel_x + 20,
+                y
+            )
+        )
+
+        y += 35
+
+
 
 # ==========================================
 # MOVIMENTO DO AGENTE
@@ -240,13 +307,18 @@ def draw_panel():
 def move_agent():
 
     global continuar
-    for agentes in times:
-        time_win = []
-        for agente in agentes:
-            time_win.append(not agente.caminhar())
+    global passos
+    passos += 1
 
-        if all(time_win):
-            continuar = False
+    times_win = []
+    for agentes in times:
+        for agente in agentes:
+            agente.caminhar()
+            times_win.append(not agente.ativo())
+
+    if all(times_win):
+        continuar = False
+
 
 # ==========================================
 # EVENTO AUTOMÁTICO
@@ -286,8 +358,11 @@ while running:
     screen.fill(BLACK)
 
     draw_world()
+    
+    draw_inicios()
 
     draw_agent()
+
 
     draw_panel()
 

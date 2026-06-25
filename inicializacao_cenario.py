@@ -28,9 +28,10 @@ class InicializarCenario:
 
 
     def __inicializar_times(self):
+        notificacoes = []
         times = []
         for i in range(self.n_times):
             kb = BaseConhecimento(self.grid_size)
-            times.append([AgenteBaseadoConhecimento(tamanho=self.grid_size, env=self.world, kb=kb, inicio_agente=self.inicios[i*self.n_agentes_time+n]) for n in range(self.n_agentes_time)])
+            times.append([AgenteBaseadoConhecimento(tamanho=self.grid_size, env=self.world, kb=kb, inicio_agente=self.inicios[i*self.n_agentes_time+n], notificacoes=notificacoes) for n in range(self.n_agentes_time)])
 
         self.times = times

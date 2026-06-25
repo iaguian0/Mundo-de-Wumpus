@@ -46,14 +46,11 @@ class SpriteManager:
             0,
             0
         )
-
+        self.jogadores = []
         # Jogador
         self.jogador = self.get_sprite(
             self.rogues,
-            0,
-            0,
-            
-        )
+            0,0,)
 
         monstros_list = [
             (1, 1),
@@ -92,6 +89,14 @@ class SpriteManager:
         )
 
 
+        # Ouro
+        self.ouro_achado = self.get_sprite(
+            self.tiles,
+            1,
+            17
+        )
+
+
         bolsa_list = [
             (3, 24), #bolsa
             (3, 21), #livro
@@ -112,6 +117,13 @@ class SpriteManager:
             self.items,
             *bolsa_cord
         )
+
+        self.saida = self.get_sprite(
+            self.tiles,
+            3, 
+            16
+        )
+
 
 
 
