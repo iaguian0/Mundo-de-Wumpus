@@ -194,33 +194,8 @@ O conhecimento acumulado pode ser compartilhado entre agentes da mesma equipe, p
 
 ---
 
-## 📊 Possíveis Métricas
-
-O projeto permite avaliar aspectos como:
-
-* Taxa de sobrevivência
-* Número de movimentos
-* Quantidade de células exploradas
-* Eficiência da cooperação
-* Descoberta do ouro
-* Tempo médio de exploração
-
----
-
 ## 🛠 Tecnologias Utilizadas
 
 * Python 3
 * Pygame
 
----
-
-### Badges para colocar no topo
-
-```md
-![Python](https://img.shields.io/badge/Python-3.10+-blue)
-![Pygame](https://img.shields.io/badge/Pygame-2.x-green)
-![License](https://img.shields.io/badge/License-Educational-orange)
-![Status](https://img.shields.io/badge/Status-Active-success)
-```
-
-E eu adicionaria também um GIF da simulação logo abaixo do título. Projetos de IA com interface gráfica ganham muito mais destaque quando o recrutador/professor consegue ver os agentes se movendo sem precisar executar o código.
