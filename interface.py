@@ -3,6 +3,7 @@ import sys
 
 from ambiente import AmbienteWumpus
 from agente import AgenteBaseadoConhecimento
+from sprites import SpriteManager
 from conhecimento import BaseConhecimento
 
 import random
@@ -31,6 +32,11 @@ CELL_SIZE = int(HEIGHT / GRID_SIZE)
 FPS = 60
 
 
+# ==========================================
+# AMBIENTE E AGENTE
+# ==========================================
+
+
 
 inicios = [(random.randrange(0, GRID_SIZE), random.randrange(0, GRID_SIZE)) for _ in range(N_AGENTES)] if N_AGENTES != 1 else [(0,0)]
 world = AmbienteWumpus(tamanho=GRID_SIZE, inicios_agentes=inicios)
@@ -41,18 +47,43 @@ for i in range(N_TIMES):
     times.append([AgenteBaseadoConhecimento(tamanho=GRID_SIZE, env=world, kb=kb, inicio_agente=inicios[i*N_AGENTES_P_TIME+n]) for n in range(N_AGENTES_P_TIME)])
 
 
+# ==========================================
+# PYGAME
+# ==========================================
+
 pygame.init()
 
-screen = pygame.display.set_mode((WIDTH, HEIGHT))
+screen = pygame.display.set_mode(
+    (
+        WIDTH,
+        HEIGHT
+    )
+)
+
 pygame.display.set_caption("Mundo de Wumpus")
 
 clock = pygame.time.Clock()
 
+sprites = SpriteManager(CELL_SIZE)
+
+
+# ==========================================
+# FONTES
+# ==========================================
+
 font = pygame.font.SysFont(None, 40)
+
 small_font = pygame.font.SysFont(None, 28)
 
+
+# ==========================================
+# CORES
+# ==========================================
+
 BLACK = (20, 20, 20)
+
 WHITE = (255, 255, 255)
+
 GRAY = (60, 60, 60)
 
 GREEN = (0, 180, 0)
@@ -77,12 +108,15 @@ def draw_world():
                 tm_cortes = CELL_SIZE/N_TIMES
                 rect = pygame.Rect(x, y, CELL_SIZE,CELL_SIZE)
                 
+                sprite_chao = sprites.chao.copy()
                 pygame.draw.rect(screen, GRAY, rect, 2)
+                screen.blit(sprite_chao, (x, y))
 
                 for i, agentes in enumerate(times):
                     fatos_agente = agentes[0].kb.fatos
                     
                     if f'Segura({row},{col})' in fatos_agente:
+                        sprite_chao.set_alpha(ALPHA)
                         pygame.draw.rect(screen, WHITE, rect, 2)
                         pygame.draw.circle(screen, cores_times[i], (x+TM_POINT+((TM_POINT*1.5)*i), y+TM_POINT), int(TM_POINT/2))
 
@@ -92,11 +126,26 @@ def draw_world():
                     if 'Poco' in cell:
                         text = font.render("P", True, RED)
                         if f'Poco({row},{col})' not in fatos_agente: text.set_alpha(ALPHA)
+                        sprite = sprites.poco.copy()
+
+                        if f'Poco({row},{col})' not in fatos_agente:
+
+                            sprite.set_alpha(ALPHA)
+
+                        screen.blit(
+                            sprite,
+                            (
+                                x,
+                                y
+                            )
+                        )
+
 
 
                     elif 'Wumpus' in cell:
                         text = font.render("W", True, GREEN)
                         if f'Wumpus({row},{col})' not in fatos_agente: text.set_alpha(ALPHA)
+            
 
 
                     elif 'Ouro' in cell:
@@ -135,6 +184,13 @@ def draw_agent():
             label_rect = label.get_rect(center=(x, y))
 
             screen.blit(label, label_rect)
+            screen.blit(
+                sprites.jogador,
+                (
+                    x,
+                    y
+                )
+            )
 
 def draw_panel():
     panel_x = GRID_SIZE * CELL_SIZE
@@ -161,11 +217,13 @@ def draw_panel():
 
     info = [
         f"Passos: {steps}",
-        f"Linha: {agent_row} - Coluna: {agent_col}",
+        f"Linha: {agent_row}",
+        f"Coluna: {agent_col}",
         "",
         "Objetivo:",
         "Encontrar ouro",
-        "Notificacoes:",
+        "",
+        "Notificacoes:"
     ]
 
     info.extend(notificacoes)
@@ -174,16 +232,29 @@ def draw_panel():
 
     for line in info:
 
-        text = small_font.render(line, True, WHITE)
+        text = small_font.render(
+            line,
+            True,
+            WHITE
+        )
 
         screen.blit(
             text,
-            (panel_x + 20, y)
+            (
+                panel_x + 20,
+                y
+            )
         )
 
         y += 35
 
+
+# ==========================================
+# MOVIMENTO DO AGENTE
+# ==========================================
+
 def move_agent():
+
     global continuar
     for agentes in times:
         time_win = []
@@ -193,6 +264,9 @@ def move_agent():
         if all(time_win):
             continuar = False
 
+# ==========================================
+# EVENTO AUTOMÁTICO
+# ==========================================
 
 MOVE_EVENT = pygame.USEREVENT + 1
 
@@ -201,28 +275,40 @@ pygame.time.set_timer(
     300
 )
 
+
+# ==========================================
+# LOOP PRINCIPAL
+# ==========================================
+
 running = True
+
 continuar = True
 
 while running:
 
     clock.tick(FPS)
- 
+
     for event in pygame.event.get():
 
         if event.type == pygame.QUIT:
+
             running = False
 
         if event.type == MOVE_EVENT and continuar:
+
             move_agent()
+
 
     screen.fill(BLACK)
 
     draw_world()
+
     draw_agent()
+
     draw_panel()
 
     pygame.display.flip()
 
 pygame.quit()
+
 sys.exit()
