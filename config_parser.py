@@ -5,7 +5,7 @@ config = configparser.ConfigParser()
 config.read('config.ini')
 
 
-n_times = config.getint('agentes', 'n_times')
+n_times = min(config.getint('agentes', 'n_times'), 4)
 n_agentes_p_time = config.getint('agentes', 'n_agentes_p_time')
 
 grid_size = config.getint('mundo', 'grid_size')

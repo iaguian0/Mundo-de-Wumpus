@@ -29,6 +29,7 @@ class AgenteBaseadoConhecimento:
         self.notificacoes = notificacoes
         self.name = self.__get_name()
         self.concluido = False
+        self.add_notificacoes('Explorando')
 
     def __get_name(self):
         fk = Faker('pt_BR')
@@ -121,7 +122,7 @@ class AgenteBaseadoConhecimento:
             
             if  self.kb.eh_ouro(r, c):
                 print("[EVENTO] Ouro encontrado. Coletando e planejando retorno.")
-                self.add_notificacoes('[EVENTO] Tesouro encontrado')
+                self.add_notificacoes('Tesouro encontrado')
 
                 self.registro_acoes.append(f"Pegou o ouro em ({r},{c})")
                 self.tem_ouro = True
@@ -130,14 +131,14 @@ class AgenteBaseadoConhecimento:
 
             if "Wumpus" in self.env.grade[r][c]:
                 print("[FAIL] Agente eliminado pelo Wumpus.")
-                self.add_notificacoes('[FAIL] Agente eliminado pelo Wumpus.')
+                self.add_notificacoes('Agente eliminado pelo Wumpus.')
 
                 self.esta_vivo = False
                 return False
 
             if "Poco" in self.env.grade[r][c]:
                 print("[FAIL] Agente caiu em um poco.")
-                self.add_notificacoes('[FAIL] Agente caiu em um poco.')
+                self.add_notificacoes('Agente caiu em um poco.')
 
                 self.esta_vivo = False
                 return False
@@ -145,7 +146,7 @@ class AgenteBaseadoConhecimento:
             proximo_alvo = self.escolher_proximo_movimento()
             if proximo_alvo is None:
                 print("[AVISO] Agente encurralado. Sem rotas validas disponiveis.")
-                self.add_notificacoes('[AVISO] Agente encurralado')
+                self.add_notificacoes('Agente encurralado')
                 return False
                 
             caminho = encontrar_caminho(self.tamanho, self.pos_atual, proximo_alvo, self.kb)
@@ -173,7 +174,7 @@ class AgenteBaseadoConhecimento:
                 self.registro_acoes.append(f"Retorno: Moveu-se para ({movimento[0]},{movimento[1]})")
                 return True
             print("[SUCESSO] Ouro coletado e retorno executado em seguranca.")
-            self.add_notificacoes('[SUCESSO] Retorno executado')
+            self.add_notificacoes('Retorno executado')
             self.concluido = True
             return False
 

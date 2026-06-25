@@ -46,11 +46,18 @@ class SpriteManager:
             0,
             0
         )
+        jogadores_list = [
+            (4, 2),
+            (1, 4),
+            (2, 0),
+            (1, 2),
+        ]
+
         self.jogadores = []
         # Jogador
-        self.jogador = self.get_sprite(
-            self.rogues,
-            0,0,)
+        for j in jogadores_list:
+            self.jogadores.append(self.get_sprite(self.rogues, *j))
+
 
         monstros_list = [
             (1, 1),

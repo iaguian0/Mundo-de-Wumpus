@@ -75,16 +75,22 @@ BLACK = (20, 20, 20)
 
 WHITE = (255, 255, 255)
 
-GRAY = (60, 60, 60)
+GRAY = (50, 50, 50)
 
-GREEN = (0, 180, 0)
 RED = (200, 50, 50)
-YELLOW = (255, 215, 0)
 BLUE = (50, 100, 255)
+GREEN = (0, 180, 0)
+YELLOW = (255, 215, 0)
 
 ALPHA = 80
 
-cores_times = [RED, YELLOW, GREEN, BLUE]
+cores_times = [
+    RED, 
+    BLUE,
+    GREEN, 
+    YELLOW, 
+    ]
+
 passos = 0
 
 def draw_world():
@@ -158,13 +164,7 @@ def draw_agent():
             y, x = agente.pos_atual
             x = x * CELL_SIZE
             y = y * CELL_SIZE
-            sprite = sprites.jogador.copy()
-
-                # superficie_cor = pygame.Surface(sprite.get_size()).convert_alpha()
-                # superficie_cor.fill(cores_times[t])
-                
-                
-                # sprite.blit(superficie_cor, (0, 0), special_flags=pygame.BLEND_RGBA_MULT)
+            sprite = sprites.jogadores[t].copy()
             
             if not agente.esta_vivo:
                 sprite.set_alpha(ALPHA)
@@ -177,6 +177,7 @@ def draw_agent():
                 )
             )
             nome_ag = agente.name.upper()
+
             if N_TIMES > 1:
                 name = font_name.render(nome_ag, True, cores_times[t])
             else:
@@ -184,14 +185,11 @@ def draw_agent():
             
             l_t, a_t = font_name.size(nome_ag)
             
-            pos = (x, y+(y*0.02))
-            
-            pygame.draw.rect(screen, BLACK, (*pos, l_t, a_t))
-            screen.blit(name, pos)
+            x_nome = x + (CELL_SIZE - l_t)//2
 
+            pos = (x_nome, y)
             
-                    
-
+               
             if agente.tem_ouro:
                 screen.blit(
                     sprites.bolsa_ouro,
@@ -200,6 +198,12 @@ def draw_agent():
                         y
                     )
                 )
+
+            pygame.draw.rect(screen, BLACK, (*pos, l_t, a_t))
+            screen.blit(name, pos)
+
+            
+
              
 
 def draw_inicios():
@@ -236,22 +240,21 @@ def draw_panel():
     title = font.render("Status", True, WHITE)
     screen.blit(title, (panel_x + 20, 20))
 
-    notificacoes = agentes[0].get_notificacoes(4)
+    ganhador = ''
+
+    if not continuar:
+        pontos = []
+        for t, agentes in enumerate(times):
+            pontos.append((t, sum([ag.get_pontuacao() for ag in agentes])))
+
+        pontos.sort(key=lambda x: x[1], reverse=True)
+        ganhador = f'Ganhador: Time {pontos[0][0]+1}'
 
     info = [
+        str(ganhador) if ganhador else "",
         f"Passos: {passos}",
-        # f"Linha: {agent_row}",
-        # f"Coluna: {agent_col}",
         "",
-        "Objetivo:",
-        "Encontrar ouro",
-        "",
-        "Notificacoes:"
     ]
-
-    info.extend(notificacoes)
-
-    info.append('Pontuaçoes:')
 
     y = 90
 
@@ -276,12 +279,20 @@ def draw_panel():
     pont_times = []
     for t, agentes in enumerate(times):
         pontuacao_time = sum([ag.get_pontuacao() for ag in agentes])
-        pont_times.append((t, (f'Time {t+1}: {pontuacao_time}'), pontuacao_time))
+        pont_times.append((t, (f'Time {t+1}: {pontuacao_time}')))
+        notificacoes = []
+        for agente in agentes:
+            notificacoes.extend(agente.get_notificacoes(1))
+        pont_times.extend([(t, n) for n in notificacoes ])
+        pont_times.append('')
 
 
-    pont_times.sort(key=lambda x: x[2], reverse=True)
 
-    for t, line, _ in pont_times:
+    for pont in pont_times:
+        y += 18
+        if not pont: continue
+
+        t, line = pont
         text = small_font.render(
             line,
             True,
@@ -296,7 +307,6 @@ def draw_panel():
             )
         )
 
-        y += 35
 
 
 
