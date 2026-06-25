@@ -14,11 +14,13 @@ import random
 PANEL_WIDTH = 360
 
 TAMANHO_H_W = 600
-GRID_SIZE = 15
-N_AGENTES = 4
+GRID_SIZE = 8
 
+N_AGENTES_P_TIME = 2
+N_TIMES = 2
 
-CELL_SIZE = 70
+N_AGENTES = N_AGENTES_P_TIME * N_TIMES
+
 
 WIDTH = TAMANHO_H_W + PANEL_WIDTH
 HEIGHT = TAMANHO_H_W 
@@ -33,8 +35,10 @@ FPS = 60
 inicios = [(random.randrange(0, GRID_SIZE), random.randrange(0, GRID_SIZE)) for _ in range(N_AGENTES)] if N_AGENTES != 1 else [(0,0)]
 world = AmbienteWumpus(tamanho=GRID_SIZE, inicios_agentes=inicios)
 
-kb = BaseConhecimento(GRID_SIZE)
-agentes = [AgenteBaseadoConhecimento(tamanho=GRID_SIZE, env=world, kb=kb, inicio_agente=inicios[n]) for n in range(N_AGENTES)]
+times = []
+for i in range(N_TIMES):
+    kb = BaseConhecimento(GRID_SIZE)
+    times.append([AgenteBaseadoConhecimento(tamanho=GRID_SIZE, env=world, kb=kb, inicio_agente=inicios[i*N_AGENTES_P_TIME+n]) for n in range(N_AGENTES_P_TIME)])
 
 
 pygame.init()
@@ -58,79 +62,81 @@ BLUE = (50, 100, 255)
 
 ALPHA = 80
 
+cores_times = [RED, YELLOW, GREEN, BLUE]
+
 def draw_world():
+        TM_POINT = CELL_SIZE/8
+        for row in range(GRID_SIZE):
+            for col in range(GRID_SIZE):
 
-    for row in range(GRID_SIZE):
-        for col in range(GRID_SIZE):
+                x = col * CELL_SIZE
+                y = row * CELL_SIZE
 
-            x = col * CELL_SIZE
-            y = row * CELL_SIZE
 
-            rect = pygame.Rect(
-                x,
-                y,
-                CELL_SIZE,
-                CELL_SIZE
-            )
 
-            fatos_agente = agentes[0].kb.fatos
-
-            if f'Segura({row},{col})' in fatos_agente:
-                pygame.draw.rect(screen, WHITE, rect, 2)
-            else:
+                tm_cortes = CELL_SIZE/N_TIMES
+                rect = pygame.Rect(x, y, CELL_SIZE,CELL_SIZE)
+                
                 pygame.draw.rect(screen, GRAY, rect, 2)
 
-
-            cell = world.grade[row][col]
-
-            if 'Poco' in cell:
-                text = font.render("P", True, RED)
-                if f'Poco({row},{col})' not in fatos_agente: text.set_alpha(ALPHA)
-
-
-            elif 'Wumpus' in cell:
-                text = font.render("W", True, GREEN)
-                if f'Wumpus({row},{col})' not in fatos_agente: text.set_alpha(ALPHA)
+                for i, agentes in enumerate(times):
+                    fatos_agente = agentes[0].kb.fatos
+                    
+                    if f'Segura({row},{col})' in fatos_agente:
+                        pygame.draw.rect(screen, WHITE, rect, 2)
+                        pygame.draw.circle(screen, cores_times[i], (x+TM_POINT+((TM_POINT*1.5)*i), y+TM_POINT), int(TM_POINT/2))
 
 
-            elif 'Ouro' in cell:
-                text = font.render("O", True, YELLOW)
-                if f'Ouro({row},{col})' not in fatos_agente: text.set_alpha(ALPHA)
+                    cell = world.grade[row][col]
 
-            else:
-                continue
+                    if 'Poco' in cell:
+                        text = font.render("P", True, RED)
+                        if f'Poco({row},{col})' not in fatos_agente: text.set_alpha(ALPHA)
 
-            text_rect = text.get_rect(
-                center=(x + CELL_SIZE // 2,
-                        y + CELL_SIZE // 2)
-            )
 
-            screen.blit(text, text_rect)
+                    elif 'Wumpus' in cell:
+                        text = font.render("W", True, GREEN)
+                        if f'Wumpus({row},{col})' not in fatos_agente: text.set_alpha(ALPHA)
+
+
+                    elif 'Ouro' in cell:
+                        text = font.render("O", True, YELLOW)
+                        if f'Ouro({row},{col})' not in fatos_agente: text.set_alpha(ALPHA)
+
+                    else:
+                        continue
+
+                    text_rect = text.get_rect(
+                        center=(x + CELL_SIZE // 2,
+                                y + CELL_SIZE // 2)
+                    )
+
+                    screen.blit(text, text_rect)
 
 def draw_agent():
-    for i, agente in enumerate(agentes):
-        if not agente.esta_vivo:
-            continue
+    for t, agentes in enumerate(times):
+        for i, agente in enumerate(agentes):
+            if not agente.esta_vivo:
+                continue
 
-        y, x = agente.pos_atual
-        x = x * CELL_SIZE + CELL_SIZE // 2
-        y = y * CELL_SIZE + CELL_SIZE // 2
+            y, x = agente.pos_atual
+            x = x * CELL_SIZE + CELL_SIZE // 2
+            y = y * CELL_SIZE + CELL_SIZE // 2
 
-        pygame.draw.circle(
-            screen,
-            BLUE,
-            (x, y),
-            25
-        )
+            pygame.draw.circle(
+                screen,
+                cores_times[t],
+                (x, y),
+                25
+            )
 
-        label = small_font.render(f"A {i+1}", True, WHITE)
+            label = small_font.render(f"A {i+1}", True, WHITE)
 
-        label_rect = label.get_rect(center=(x, y))
+            label_rect = label.get_rect(center=(x, y))
 
-        screen.blit(label, label_rect)
+            screen.blit(label, label_rect)
 
 def draw_panel():
-
     panel_x = GRID_SIZE * CELL_SIZE
 
     pygame.draw.rect(
@@ -144,6 +150,7 @@ def draw_panel():
         )
     )
 
+    agentes = times[0]
     title = font.render("Status", True, WHITE)
     screen.blit(title, (panel_x + 20, 20))
     
@@ -178,9 +185,13 @@ def draw_panel():
 
 def move_agent():
     global continuar
-    for agente in agentes:
-        agente.caminhar()
+    for agentes in times:
+        time_win = []
+        for agente in agentes:
+            time_win.append(not agente.caminhar())
 
+        if all(time_win):
+            continuar = False
 
 
 MOVE_EVENT = pygame.USEREVENT + 1
