@@ -6,13 +6,13 @@ class AmbienteWumpus:
     Gera o ambiente de forma automatica e aleatoria contendo os perigos e o ouro.
     Garante que a posicao de partida do agente seja 100% segura.
     """
-    def __init__(self, tamanho: int = 4):
+    def __init__(self, inicios_agentes: List[Tuple[int, int]], tamanho: int = 4):
         self.tamanho = max(4, tamanho)  # Limite minimo de 4x4 conforme regras
         self.grade: List[List[Set[str]]] = [[set() for _ in range(self.tamanho)] for _ in range(self.tamanho)]
         self.pos_wumpus: List[Tuple[int, int]] = []
         self.pos_pocos: List[Tuple[int, int]] = []
         self.pos_ouro: Tuple[int, int] = (0, 0)
-        self.inicio_agente: Tuple[int, int] = (0, 0)
+        self.inicios_agentes = inicios_agentes
         
         self._gerar_mundo()
         print(self.grade)
@@ -26,7 +26,11 @@ class AmbienteWumpus:
         return vizinhos
 
     def _gerar_mundo(self):
-        restricoes_pos = [(self.inicio_agente[0]+i, self.inicio_agente[1]+j) for i in range(-1, 2) for j in range(-1, 2)]
+        
+        restricoes_pos = []
+        for inicio_agente in self.inicios_agentes:
+            restricoes_pos.extend([(inicio_agente[0]+i, inicio_agente[1]+j) for i in range(-1, 2) for j in range(-1, 2)])
+
         todas_posicoes = [(r, c) for r in range(self.tamanho) for c in range(self.tamanho) if (r, c) not in restricoes_pos]
         random.shuffle(todas_posicoes)
         
@@ -52,13 +56,14 @@ class AmbienteWumpus:
             for nr, nc in self._obter_vizinhos(posicao_pit[0], posicao_pit[1]):
                 self.grade[nr][nc].add("Brisa")
 
-
     def obter_percepcoes(self, r: int, c: int) -> Set[str]:
         percepcoes = set()
         conteudo_celula = self.grade[r][c]
         if "Brisa" in conteudo_celula: percepcoes.add("Brisa")
         if "Fedor" in conteudo_celula: percepcoes.add("Fedor")
         if "Ouro" in conteudo_celula: percepcoes.add("Brilho")
+        if "Wumpus" in conteudo_celula: percepcoes.add("Wumpus")
+        if "Poco" in conteudo_celula: percepcoes.add("Poco")
         return percepcoes
 
     def exibir_ambiente(self, pos_agente: Tuple[int, int]):

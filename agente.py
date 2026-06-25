@@ -8,18 +8,19 @@ class AgenteBaseadoConhecimento:
     Agente que toma decisoes deliberativas a partir das percepcoes e inferencias
     logicas armazenadas de forma estruturada na Base de Conhecimento.
     """
-    def __init__(self, tamanho: int, env: AmbienteWumpus):
+    def __init__(self, tamanho: int, env: AmbienteWumpus, kb: BaseConhecimento, inicio_agente):
+        self.inicio_agente = inicio_agente
         self.tamanho = tamanho
         self.env = env
-        self.kb = BaseConhecimento(tamanho)
-        self.pos_atual = env.inicio_agente
+        self.kb = kb
+        self.pos_atual = inicio_agente
         self.tem_ouro = False
         self.esta_vivo = True
         self.historico_trajetoria: List[Tuple[int, int]] = [self.pos_atual]
         self.registro_acoes: List[str] = []
         
         # Conhecimento inicial da celula de partida
-        self.kb.tell_visitado(self.pos_atual[0], self.pos_atual[1])
+        self.kb.tell_visitado(self.pos_atual[0], self.pos_atual[1], self)
         self.kb.inferir_conhecimento()
         self.passo = 0
 
@@ -44,14 +45,21 @@ class AgenteBaseadoConhecimento:
             
         if "Brilho" in percepcoes:
             self.kb.tell(f"Brilho({r},{c})")
-            
+
+        if "Wumpus" in percepcoes:
+            self.kb.tell(f"Wumpus({r},{c})")
+
+        if "Poco" in percepcoes:
+            self.kb.tell(f"Poco({r},{c})")
+
+
         self.kb.inferir_conhecimento()
 
     def escolher_proximo_movimento(self) -> Optional[Tuple[int, int]]:
         seguras_nao_visitadas = []
         for r in range(self.tamanho):
             for c in range(self.tamanho):
-                if self.kb.eh_segura(r, c) and (r, c) not in self.kb.visitados:
+                if self.kb.eh_segura(r, c) and not self.kb.verificar_vizitado(r, c, self):
                     seguras_nao_visitadas.append((r, c))
 
         if seguras_nao_visitadas:
@@ -69,13 +77,16 @@ class AgenteBaseadoConhecimento:
 
         vizinhos_viaveis = []
 
-        for r, c in self.kb.visitados:
+        for cord, ag in self.kb.visitados:
+            if ag != self:
+                continue
+            r, c = cord
             for dr, dc in [(-1, 0), (1, 0), (0, -1), (0, 1)]:
                 nr, nc = r + dr, c + dc
                 if 0 <= nr < self.tamanho and 0 <= nc < self.tamanho:
-                    if (nr, nc) not in self.kb.visitados and (not self.kb.eh_wumpus(nr, nc) and not self.kb.eh_poco(nr, nc)):
+                    if (not self.kb.verificar_vizitado(nr, nc, self)) and (not self.kb.eh_wumpus(nr, nc) and not self.kb.eh_poco(nr, nc)):
                         vizinhos_viaveis.append((nr, nc))
-        
+
         if vizinhos_viaveis:
             melhor_celula = vizinhos_viaveis[0]
             menor_risco = float('inf')
@@ -106,7 +117,7 @@ class AgenteBaseadoConhecimento:
 
                 self.registro_acoes.append(f"Pegou o ouro em ({r},{c})")
                 self.tem_ouro = True
-                self.caminho_retorno = encontrar_caminho(self.tamanho, self.pos_atual, self.env.inicio_agente, self.kb)
+                self.caminho_retorno = encontrar_caminho(self.tamanho, self.pos_atual, self.inicio_agente, self.kb)
                 return True
 
             if "Wumpus" in self.env.grade[r][c]:
@@ -135,12 +146,12 @@ class AgenteBaseadoConhecimento:
                 movimento = caminho[0]
                 self.pos_atual = movimento
                 self.historico_trajetoria.append(movimento)
-                self.kb.tell_visitado(movimento[0], movimento[1])
+                self.kb.tell_visitado(movimento[0], movimento[1], self)
                 self.registro_acoes.append(f"Moveu-se para ({movimento[0]},{movimento[1]})")
             else:
                 self.pos_atual = proximo_alvo
                 self.historico_trajetoria.append(proximo_alvo)
-                self.kb.tell_visitado(proximo_alvo[0], proximo_alvo[1])
+                self.kb.tell_visitado(proximo_alvo[0], proximo_alvo[1], self)
                 self.registro_acoes.append(f"Moveu-se para ({proximo_alvo[0]},{proximo_alvo[1]})")
             return True
         

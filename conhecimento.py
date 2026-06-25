@@ -38,11 +38,14 @@ class BaseConhecimento:
         """ Adiciona um fato conhecido a base """
         self.fatos.add(fato)
 
-    def tell_visitado(self, r: int, c: int):
-        self.visitados.add((r, c))
+    def tell_visitado(self, r: int, c: int, agente):
+        self.visitados.add(((r, c), agente))
         self.tell(f"Visitada({r},{c})")
         self.tell(f"~Poco({r},{c})")
         self.tell(f"~Wumpus({r},{c})")
+
+    def verificar_vizitado(self, r: int, c: int, agente):
+        return ((r, c), agente) in self.visitados
 
     def inferir_conhecimento(self):
         """
@@ -93,7 +96,7 @@ class BaseConhecimento:
         return consulta in self.fatos
 
     def eh_segura(self, r: int, c: int) -> bool:
-        return self.ask(f"Segura({r},{c})")
+        return self.ask(f"Segura({r},{c})") and (not self.eh_wumpus(r, c) and not self.eh_poco(r, c))
 
     def eh_suspeita_poco(self, r: int, c: int) -> bool:
         return not self.ask(f"~Poco({r},{c})")

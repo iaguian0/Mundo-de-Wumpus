@@ -3,7 +3,9 @@ import sys
 
 from ambiente import AmbienteWumpus
 from agente import AgenteBaseadoConhecimento
+from conhecimento import BaseConhecimento
 
+import random
 
 # ==========================================
 # CONFIGURAÇÕES
@@ -12,7 +14,8 @@ from agente import AgenteBaseadoConhecimento
 PANEL_WIDTH = 360
 
 TAMANHO_H_W = 600
-GRID_SIZE = 10
+GRID_SIZE = 15
+N_AGENTES = 4
 
 
 CELL_SIZE = 70
@@ -25,8 +28,13 @@ CELL_SIZE = int(HEIGHT / GRID_SIZE)
 
 FPS = 60
 
-world = AmbienteWumpus(tamanho=GRID_SIZE)
-agente = AgenteBaseadoConhecimento(tamanho=GRID_SIZE, env=world)
+
+
+inicios = [(random.randrange(0, GRID_SIZE), random.randrange(0, GRID_SIZE)) for _ in range(N_AGENTES)] if N_AGENTES != 1 else [(0,0)]
+world = AmbienteWumpus(tamanho=GRID_SIZE, inicios_agentes=inicios)
+
+kb = BaseConhecimento(GRID_SIZE)
+agentes = [AgenteBaseadoConhecimento(tamanho=GRID_SIZE, env=world, kb=kb, inicio_agente=inicios[n]) for n in range(N_AGENTES)]
 
 
 pygame.init()
@@ -65,7 +73,7 @@ def draw_world():
                 CELL_SIZE
             )
 
-            fatos_agente = agente.kb.fatos
+            fatos_agente = agentes[0].kb.fatos
 
             if f'Segura({row},{col})' in fatos_agente:
                 pygame.draw.rect(screen, WHITE, rect, 2)
@@ -100,22 +108,26 @@ def draw_world():
             screen.blit(text, text_rect)
 
 def draw_agent():
-    y, x = agente.pos_atual
-    x = x * CELL_SIZE + CELL_SIZE // 2
-    y = y * CELL_SIZE + CELL_SIZE // 2
+    for i, agente in enumerate(agentes):
+        if not agente.esta_vivo:
+            continue
 
-    pygame.draw.circle(
-        screen,
-        BLUE,
-        (x, y),
-        25
-    )
+        y, x = agente.pos_atual
+        x = x * CELL_SIZE + CELL_SIZE // 2
+        y = y * CELL_SIZE + CELL_SIZE // 2
 
-    label = small_font.render("A", True, WHITE)
+        pygame.draw.circle(
+            screen,
+            BLUE,
+            (x, y),
+            25
+        )
 
-    label_rect = label.get_rect(center=(x, y))
+        label = small_font.render(f"A {i+1}", True, WHITE)
 
-    screen.blit(label, label_rect)
+        label_rect = label.get_rect(center=(x, y))
+
+        screen.blit(label, label_rect)
 
 def draw_panel():
 
@@ -135,10 +147,10 @@ def draw_panel():
     title = font.render("Status", True, WHITE)
     screen.blit(title, (panel_x + 20, 20))
     
-    agent_row, agent_col = agente.pos_atual
-    steps = agente.passo
+    agent_row, agent_col = agentes[0].pos_atual
+    steps = agentes[0].passo
 
-    notificacoes = agente.get_notificacoes(3)
+    notificacoes = agentes[0].get_notificacoes(3)
 
     info = [
         f"Passos: {steps}",
@@ -166,17 +178,16 @@ def draw_panel():
 
 def move_agent():
     global continuar
-    continuar = agente.caminhar()
-    
-    if not continuar: 
-        return
+    for agente in agentes:
+        agente.caminhar()
+
 
 
 MOVE_EVENT = pygame.USEREVENT + 1
 
 pygame.time.set_timer(
     MOVE_EVENT,
-    200
+    300
 )
 
 running = True
