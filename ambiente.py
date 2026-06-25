@@ -39,14 +39,19 @@ class AmbienteWumpus:
         self.grade[self.pos_ouro[0]][self.pos_ouro[1]].add("Ouro")
         
         # Posicionar Wumpus (Pelo menos 1)
-        posicao_wumpus = todas_posicoes.pop()
-        self.pos_wumpus.append(posicao_wumpus)
-        self.grade[posicao_wumpus[0]][posicao_wumpus[1]].add("Wumpus")
-        for nr, nc in self._obter_vizinhos(posicao_wumpus[0], posicao_wumpus[1]):
-            self.grade[nr][nc].add("Fedor")
+        num_wumpus = max(1, int((self.tamanho * self.tamanho) * 0.05))
+        for _ in range(num_wumpus):
+            if not todas_posicoes:
+                break
+
+            posicao_wumpus = todas_posicoes.pop()
+            self.pos_wumpus.append(posicao_wumpus)
+            self.grade[posicao_wumpus[0]][posicao_wumpus[1]].add("Wumpus")
+            for nr, nc in self._obter_vizinhos(posicao_wumpus[0], posicao_wumpus[1]):
+                self.grade[nr][nc].add("Fedor")
                 
         # Posicionar Pocos dinamicamente por tamanho
-        num_pocos = max(1, int((self.tamanho * self.tamanho) * 0.15))
+        num_pocos = max(1, int((self.tamanho * self.tamanho) * 0.1))
         for _ in range(num_pocos):
             if not todas_posicoes:
                 break
