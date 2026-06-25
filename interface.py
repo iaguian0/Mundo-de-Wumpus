@@ -5,9 +5,6 @@ from sprites import SpriteManager
 from inicializacao_cenario import InicializarCenario
 from config_parser import *
 
-# ==========================================
-# CONFIGURAÇÕES
-# ==========================================
 
 PANEL_WIDTH = panel_width
 
@@ -35,9 +32,6 @@ times = cenario.times
 world = cenario.world
 inicios = cenario.inicios
 
-# ==========================================
-# PYGAME
-# ==========================================
 
 pygame.init()
 
@@ -55,10 +49,6 @@ clock = pygame.time.Clock()
 sprites = SpriteManager(CELL_SIZE)
 
 
-# ==========================================
-# FONTES
-# ==========================================
-
 font = pygame.font.SysFont(None, 40)
 
 small_font = pygame.font.SysFont(None, 22)
@@ -67,9 +57,6 @@ font_name.set_underline(True)
 font_name.set_bold(True)
 
 
-# ==========================================
-# CORES
-# ==========================================
 
 BLACK = (20, 20, 20)
 
@@ -204,8 +191,6 @@ def draw_agent():
 
             
 
-             
-
 def draw_inicios():
     for inicio in inicios:
         y, x = inicio
@@ -308,12 +293,6 @@ def draw_panel():
         )
 
 
-
-
-# ==========================================
-# MOVIMENTO DO AGENTE
-# ==========================================
-
 def move_agent():
 
     global continuar
@@ -330,10 +309,6 @@ def move_agent():
         continuar = False
 
 
-# ==========================================
-# EVENTO AUTOMÁTICO
-# ==========================================
-
 MOVE_EVENT = pygame.USEREVENT + 1
 
 pygame.time.set_timer(
@@ -342,42 +317,39 @@ pygame.time.set_timer(
 )
 
 
-# ==========================================
-# LOOP PRINCIPAL
-# ==========================================
-
-running = True
 
 continuar = True
+def run():
+    running = True
 
-while running:
+    while running:
 
-    clock.tick(FPS)
+        clock.tick(FPS)
 
-    for event in pygame.event.get():
+        for event in pygame.event.get():
 
-        if event.type == pygame.QUIT:
+            if event.type == pygame.QUIT:
 
-            running = False
+                running = False
 
-        if event.type == MOVE_EVENT and continuar:
+            if event.type == MOVE_EVENT and continuar:
 
-            move_agent()
-
-
-    screen.fill(BLACK)
-
-    draw_world()
-    
-    draw_inicios()
-
-    draw_agent()
+                move_agent()
 
 
-    draw_panel()
+        screen.fill(BLACK)
 
-    pygame.display.flip()
+        draw_world()
+        
+        draw_inicios()
 
-pygame.quit()
+        draw_agent()
 
-sys.exit()
+
+        draw_panel()
+
+        pygame.display.flip()
+
+    pygame.quit()
+
+    sys.exit()

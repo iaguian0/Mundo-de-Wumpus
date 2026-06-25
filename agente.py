@@ -116,8 +116,6 @@ class AgenteBaseadoConhecimento:
         if not self.tem_ouro:
             r, c = self.pos_atual
 
-            print(f"\nPASSO {self.passo} - Posicao Atual do Agente: ({r},{c})")
-            
             self.perceber_e_inferir()
             
             if  self.kb.eh_ouro(r, c):
